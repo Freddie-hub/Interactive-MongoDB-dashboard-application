@@ -29,10 +29,33 @@ app = Dash(__name__)
 app.layout = html.Div([
     html.Div([
         # Add your logo image here
-        html.Img(src='grazioso.png'),
+        html.Img(src='/assets/logo.png', style={'width': '150px', 'height': 'auto'}),
         html.Center(html.B(html.H1('SNHU CS-340 Dashboard')))
     ], style={'textAlign': 'center'}),
     html.Hr(),
+    html.Div([
+        html.Label('Select Animal Type:'),
+        dcc.Dropdown(
+            id='animal-type-dropdown',
+            options=[{'label': animal, 'value': animal} for animal in df['animal_type'].unique()],
+            value=None,
+            placeholder='Select an animal type',
+            style={'width': '50%'}
+        ),
+        html.Br(),
+        html.Label('Select Animal Age:'),
+        dcc.RadioItems(
+            id='animal-age-radio',
+            options=[
+                {'label': 'Young', 'value': 'young'},
+                {'label': 'Adult', 'value': 'adult'},
+                {'label': 'Senior', 'value': 'senior'}
+            ],
+            value=None,
+            labelStyle={'display': 'inline-block'}
+        ),
+    ]),
+    html.Br(),
     dash_table.DataTable(
         id='datatable-id',
         columns=[
@@ -72,6 +95,32 @@ def update_styles(selected_columns):
     } for i in selected_columns]
 
 @app.callback(
+    Output('datatable-id', 'data'),
+    [Input('animal-type-dropdown', 'value'),
+     Input('animal-age-radio', 'value')]
+)
+def update_table(selected_animal, selected_age):
+    query = {}
+    
+    if selected_animal:
+        query['animal_type'] = selected_animal
+    
+    if selected_age:
+        if selected_age == 'young':
+            query['age_upon_outcome_in_weeks'] = {'$lt': 52}
+        elif selected_age == 'adult':
+            query['age_upon_outcome_in_weeks'] = {'$gte': 52, '$lt': 312}
+        elif selected_age == 'senior':
+            query['age_upon_outcome_in_weeks'] = {'$gte': 312}
+    
+    filtered_df = pd.DataFrame.from_records(shelter.read(query))
+    
+    if '_id' in filtered_df.columns:
+        filtered_df.drop(columns=['_id'], inplace=True)
+    
+    return filtered_df.to_dict('records')
+
+@app.callback(
     Output('map-id', "children"),
     [Input('datatable-id', "derived_virtual_data"),
      Input('datatable-id', "derived_virtual_selected_rows")]
@@ -82,9 +131,6 @@ def update_map(viewData, index):
     
     dff = pd.DataFrame(viewData)
     
-    # Debug: Print available columns
-    print("Columns in DataFrame:", dff.columns)
-
     if dff.empty:
         return [html.P("No data available to display.")]
 
