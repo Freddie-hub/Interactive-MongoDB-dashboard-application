@@ -2,6 +2,7 @@
 from dash import Dash, dcc, html, dash_table
 from dash.dependencies import Input, Output
 import dash_leaflet as dl
+import plotly.express as px
 import pandas as pd
 
 # Import your CRUD module
@@ -74,6 +75,11 @@ app.layout = html.Div([
         row_selectable='single',
     ),
     html.Br(),
+    html.Hr(),
+    html.Div([
+        dcc.Graph(id='animal-type-pie-chart'),
+        dcc.Graph(id='outcome-pie-chart')
+    ], style={'display': 'flex', 'flexDirection': 'row', 'justifyContent': 'space-between'}),
     html.Hr(),
     html.Div(
         id='map-id',
@@ -166,6 +172,30 @@ def update_map(viewData, index):
                       ])
         ])
     ]
+
+@app.callback(
+    Output('animal-type-pie-chart', 'figure'),
+    [Input('datatable-id', 'data')]
+)
+def update_animal_type_pie(data):
+    if not data:
+        return {}
+
+    dff = pd.DataFrame(data)
+    fig = px.pie(dff, names='animal_type', title='Animal Type Distribution')
+    return fig
+
+@app.callback(
+    Output('outcome-pie-chart', 'figure'),
+    [Input('datatable-id', 'data')]
+)
+def update_outcome_pie(data):
+    if not data:
+        return {}
+
+    dff = pd.DataFrame(data)
+    fig = px.pie(dff, names='outcome_type', title='Outcome Type Distribution')
+    return fig
 
 if __name__ == '__main__':
     app.run_server(debug=True)
