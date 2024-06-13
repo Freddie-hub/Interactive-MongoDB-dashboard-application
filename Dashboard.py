@@ -145,8 +145,8 @@ def update_map(viewData, index):
         row = index[0]
 
     # Define the latitude and longitude column names
-    latitude_col = 'location_lat'  # Replace with actual column name if different
-    longitude_col = 'location_long'  # Replace with actual column name if different
+    latitude_col = 'location_lat'  
+    longitude_col = 'location_long'  
 
     # Check if latitude and longitude columns are present
     if latitude_col not in dff.columns or longitude_col not in dff.columns:
