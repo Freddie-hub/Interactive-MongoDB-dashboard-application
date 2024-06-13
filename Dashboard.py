@@ -27,7 +27,11 @@ app = Dash(__name__)
 
 # Dashboard Layout / View
 app.layout = html.Div([
-    html.Center(html.B(html.H1('SNHU CS-340 Dashboard'))),
+    html.Div([
+        # Add your logo image here
+        html.Img(src='grazioso.png'),
+        html.Center(html.B(html.H1('SNHU CS-340 Dashboard')))
+    ], style={'textAlign': 'center'}),
     html.Hr(),
     dash_table.DataTable(
         id='datatable-id',
